@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+# Création de l'utilisateur osm et ajout du postgis à la base
+#
+
+createuser osm
+createdb osm
+psql osm -f /tmp/install.sql

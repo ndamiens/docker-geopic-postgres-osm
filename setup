@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# Import de la base OSM avec imposm3
+#
+
+GITDIR=/srv/style-osm-geopicardie
+GITBRANCH=imposm3-mapping
+
+if [ -f /srv/import_data_ok ]; then
+	echo "Import déjà fait" 1>&2
+	exit 0;
+fi
+
+/etc/init.d/postgresql start
+su postgres -c /usr/local/bin/install_db
+cd $GITDIR; git checkout $GITBRANCH
+
+if [ ! -f $GITDIR/imposm/imposm3-mapping.json ]; then
+	echo "ERR pas de mapping" 1>&2
+	exit 1
+else
+	echo "OK trouvé fichier de mapping" 1>&2
+	
+fi
+
+echo "Lance imposm" 1>&2
+
+/tmp/bin/imposm3 import \
+	-connection postgis://osm:osm@localhost/osm \
+	-mapping $GITDIR/imposm/imposm3-mapping.json \
+	-read /tmp/data.osm.pbf \
+	-write \
+	-deployproduction
+
+/etc/init.d/postgresql stop
+
+touch /srv/import_data_ok
