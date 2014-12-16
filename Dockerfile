@@ -20,10 +20,10 @@ ADD setup /usr/local/bin/setup
 ADD run /usr/local/bin/run
 ADD install_db /usr/local/bin/install_db
 ADD install.sql /tmp/install.sql
-RUN /usr/local/bin/setup
 ADD postgresql.conf /etc/postgresql/9.3/main/postgresql.conf
 ADD pg_hba.conf /etc/postgresql/9.3/main/pg_hba.conf
 RUN chown postgres /etc/postgresql/9.3/main/postgresql.conf
 RUN chown postgres /etc/postgresql/9.3/main/pg_hba.conf
+RUN /usr/local/bin/setup
 EXPOSE 5432
 CMD ["/usr/local/bin/run"]
