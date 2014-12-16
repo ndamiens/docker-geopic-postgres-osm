@@ -32,10 +32,13 @@ echo "Lance imposm" 1>&2
 	-write \
 	-deployproduction
 
-/etc/init.d/postgresql stop
 
 cd $GITDIR/post_imposm;
-PGPASSWORD=osm
-psql -h 127.0.0.1 -p 5432 osm osm -f 0_run_all_post_install_scripts.sql
+export PGPASSFILE=/tmp/pg_pass
+echo "$(hostname):5432:osm:osm:osm" > $PGPASSFILE
+chmod 0600 $PGPASSFILE
+psql -w -h $(hostname) -p 5432 osm osm -f 0_run_all_post_install_scripts.sql
+rm $PGPASSFILE
 
+/etc/init.d/postgresql stop
 touch /srv/import_data_ok
