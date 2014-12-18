@@ -4,5 +4,5 @@
 #
 
 createuser osm
-createdb osm
+createdb -E UTF8 -l fr_FR.UTF8 -T template0 osm
 psql osm -f /tmp/install.sql
