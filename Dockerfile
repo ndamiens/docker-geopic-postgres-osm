@@ -3,13 +3,8 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV OSM_PBF http://download.geofabrik.de/europe/france/picardie-latest.osm.pbf
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y locales && localedef -i fr_FR -c -f UTF-8 -A /usr/share/locale/locale.alias fr_FR.UTF-8
-RUN apt-get install -y postgresql-9.3 postgresql-9.3-postgis-2.1
-RUN apt-get install -y wget
-RUN wget -O /tmp/data.osm.pbf $OSM_PBF
-RUN apt-get install -y golang mercurial git
+RUN apt-get install -y postgresql-9.3 postgresql-9.3-postgis-2.1 wget golang mercurial git build-essential libleveldb-dev libgeos-dev
 RUN mkdir /tmp/src; cd /tmp/src;  git clone https://github.com/omniscale/imposm3 imposm3
-RUN apt-get install -y build-essential
-RUN apt-get install -y libleveldb-dev libgeos-dev
 RUN ln -s /usr/lib/libgeos_c.a /usr/lib/libgeos.a
 RUN ln -s /usr/lib/libgeos_c.so /usr/lib/libgeos.so
 ENV GOPATH /tmp
