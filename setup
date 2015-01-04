@@ -20,9 +20,11 @@ if [ ! -f $GITDIR/imposm/imposm3-mapping.json ]; then
 	exit 1
 else
 	echo "OK trouvé fichier de mapping" 1>&2
-	
 fi
 
+if [ -f /tmp/data.osm.pbf ]; then
+	wget -O /tmp/data.osm.pbf $OSM_PBF
+fi
 echo "Lance imposm" 1>&2
 
 /tmp/bin/imposm3 import \
@@ -39,6 +41,7 @@ echo "$(hostname):5432:osm:osm:osm" > $PGPASSFILE
 chmod 0600 $PGPASSFILE
 psql -w -h $(hostname) -p 5432 osm osm -f 0_run_all_post_install_scripts.sql
 rm $PGPASSFILE
+rm /tmp/data.osm.pbf
 
 /etc/init.d/postgresql stop
 touch /srv/import_data_ok
