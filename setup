@@ -22,9 +22,10 @@ else
 	echo "OK trouvé fichier de mapping" 1>&2
 fi
 
-if [ -f /tmp/data.osm.pbf ]; then
+if [ ! -f /tmp/data.osm.pbf ]; then
 	wget -O /tmp/data.osm.pbf $OSM_PBF
 fi
+
 echo "Lance imposm" 1>&2
 
 /tmp/bin/imposm3 import \
