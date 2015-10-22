@@ -19,5 +19,6 @@ ADD postgresql.conf /etc/postgresql/9.3/main/postgresql.conf
 ADD pg_hba.conf /etc/postgresql/9.3/main/pg_hba.conf
 RUN chown postgres /etc/postgresql/9.3/main/postgresql.conf
 RUN chown postgres /etc/postgresql/9.3/main/pg_hba.conf
+RUN mv /var/lib/postgresql /var/lib/postgresql_init
 EXPOSE 5432
 CMD ["/usr/local/bin/run"]

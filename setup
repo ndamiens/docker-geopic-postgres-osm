@@ -11,8 +11,9 @@ if [ -f /srv/import_data_ok ]; then
 	exit 0;
 fi
 
-/etc/init.d/postgresql start
 su postgres -c /usr/local/bin/install_db
+
+/etc/init.d/postgresql start
 cd $GITDIR; git checkout $GITBRANCH
 
 if [ ! -f $GITDIR/imposm/imposm3-mapping.json ]; then
