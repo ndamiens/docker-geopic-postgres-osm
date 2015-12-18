@@ -9,7 +9,6 @@ RUN ln -s /usr/lib/libgeos_c.a /usr/lib/libgeos.a
 RUN ln -s /usr/lib/libgeos_c.so /usr/lib/libgeos.so
 ENV GOPATH /tmp
 RUN cd /tmp/src; go get imposm3 ; go install imposm3
-RUN cd /srv/; git clone https://github.com/bchartier/style-osm-geopicardie
 
 ADD setup /usr/local/bin/setup
 ADD run /usr/local/bin/run

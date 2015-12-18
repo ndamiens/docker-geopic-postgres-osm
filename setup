@@ -3,47 +3,80 @@
 # Import de la base OSM avec imposm3
 #
 
-GITDIR=/srv/style-osm-geopicardie
+# setup create_db
+# setup import_db
+# setup update_pbf
+
+GITDIR=/srv/data/style-osm-geopicardie
 GITBRANCH=imposm3-mapping
+MYPGDIR=/var/lib/postgresql/9.3
+DATADIR=/srv/data
+PBF=$DATADIR/data.osm.pbf
+STATUS=$DATADIR/etat
+REPOSITORY=https://github.com/bchartier/style-osm-geopicardie
 
-if [ -f /srv/import_data_ok ]; then
-	echo "Import déjà fait" 1>&2
-	exit 0;
+#TODO ajouter le git clone
+
+function import_db_osm {
+	/etc/init.d/postgresql start
+	if [ ! -d $GITDIR ]; then
+		git clone $REPOSITORY $GITDIR
+	fi
+	cd $GITDIR; git checkout $GITBRANCH
+  
+	if [ ! -f $GITDIR/imposm/imposm3-mapping.json ]; then
+		echo "ERR pas de mapping" 1>&2
+		exit 1
+	else
+		echo "OK trouvé fichier de mapping" 1>&2
+	fi
+
+	echo "Lance imposm" 1>&2
+
+	/tmp/bin/imposm3 import \
+		-connection postgis://osm:osm@localhost/osm \
+		-mapping $GITDIR/imposm/imposm3-mapping.json \
+		-read $PBF \
+		-write \
+		-deployproduction
+
+
+	cd $GITDIR/post_imposm;
+	export PGPASSFILE=/tmp/pg_pass
+	echo "$(hostname):5432:osm:osm:osm" > $PGPASSFILE
+	chmod 0600 $PGPASSFILE
+	psql -w -h $(hostname) -p 5432 osm osm -f 0_run_all_post_install_scripts.sql
+	rm $PGPASSFILE
+	
+	/etc/init.d/postgresql stop
+}
+
+if [ ! -f $STATUS ]; then
+	echo "pret" > $STATUS
 fi
 
-su postgres -c /usr/local/bin/install_db
-
-/etc/init.d/postgresql start
-cd $GITDIR; git checkout $GITBRANCH
-
-if [ ! -f $GITDIR/imposm/imposm3-mapping.json ]; then
-	echo "ERR pas de mapping" 1>&2
-	exit 1
-else
-	echo "OK trouvé fichier de mapping" 1>&2
-fi
-
-if [ ! -f /tmp/data.osm.pbf ]; then
-	wget -O /tmp/data.osm.pbf $OSM_PBF
-fi
-
-echo "Lance imposm" 1>&2
-
-/tmp/bin/imposm3 import \
-	-connection postgis://osm:osm@localhost/osm \
-	-mapping $GITDIR/imposm/imposm3-mapping.json \
-	-read /tmp/data.osm.pbf \
-	-write \
-	-deployproduction
-
-
-cd $GITDIR/post_imposm;
-export PGPASSFILE=/tmp/pg_pass
-echo "$(hostname):5432:osm:osm:osm" > $PGPASSFILE
-chmod 0600 $PGPASSFILE
-psql -w -h $(hostname) -p 5432 osm osm -f 0_run_all_post_install_scripts.sql
-rm $PGPASSFILE
-rm /tmp/data.osm.pbf
-
-/etc/init.d/postgresql stop
-touch /srv/import_data_ok
+case "$1" in
+	create_db)
+		echo "create_db" > $STATUS
+		if [ -f $PGDIR/main]; then
+			echo "la base existe déjà" 1>&2
+			exit 0;
+		else
+			su postgres -c /usr/local/bin/install_db
+			import_db_osm
+		fi
+		echo "pret" > $STATUS
+		;;
+	import_db)
+		echo "import" > $STATUS
+		import_db_osm
+		echo "pret" > $STATUS
+		;;
+	update_db)
+		echo "import" > $STATUS
+		rm $PBF
+		wget -O $PBF $OSM_PBF
+		import_db_osm
+		echo "pret" > $STATUS
+		;;
+esac
