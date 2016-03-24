@@ -19,5 +19,10 @@ ADD pg_hba.conf /etc/postgresql/9.3/main/pg_hba.conf
 RUN chown postgres /etc/postgresql/9.3/main/postgresql.conf
 RUN chown postgres /etc/postgresql/9.3/main/pg_hba.conf
 RUN mv /var/lib/postgresql /var/lib/postgresql_init
+RUN mkdir /var/lib/postgresql
+RUN mkdir /srv/data
+RUN chmod a+rx /usr/local/bin/run
+RUN chmod a+rx /usr/local/bin/setup
+RUN chmod a+rx /usr/local/bin/install_db
 EXPOSE 5432
 CMD ["/usr/local/bin/run"]

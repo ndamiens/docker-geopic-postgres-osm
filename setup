@@ -58,10 +58,11 @@ fi
 case "$1" in
 	create_db)
 		echo "create_db" > $STATUS
-		if [ -f $PGDIR/main]; then
+		if [ -f $PGDIR/main ]; then
 			echo "la base existe déjà" 1>&2
 			exit 0;
 		else
+			chown postgres /var/lib/postgresql
 			su postgres -c /usr/local/bin/install_db
 			import_db_osm
 		fi

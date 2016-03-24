@@ -2,7 +2,7 @@
 #
 # Création de l'utilisateur osm et ajout du postgis à la base
 #
-cp -a /var/lib/postgresql_init/* /var/lib/postgresql
+cp -a /var/lib/postgresql_init/* /var/lib/postgresql/
 /etc/init.d/postgresql start
 createuser osm
 createdb -E UTF8 -l fr_FR.UTF8 -T template0 osm
