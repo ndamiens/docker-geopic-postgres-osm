@@ -17,7 +17,11 @@ REPOSITORY=https://github.com/bchartier/style-osm-geopicardie
 
 #TODO ajouter le git clone
 
+no_start_db=0
+start_db=1
+
 function import_db_osm {
+	START_DB=$1
 	/etc/init.d/postgresql start
 	if [ ! -d $GITDIR ]; then
 		git clone $REPOSITORY $GITDIR
@@ -31,24 +35,34 @@ function import_db_osm {
 		echo "OK trouvé fichier de mapping" 1>&2
 	fi
 
+	if [ ! -f $PBF ]; then
+		wget -O $PBF $OSM_PBF
+	fi
+
 	echo "Lance imposm" 1>&2
+	TMPDIR="$(dirname $PBF)/tmp_$(hostname)/"
+	mkdir -p $TMPDIR
 
 	/tmp/bin/imposm3 import \
 		-connection postgis://osm:osm@localhost/osm \
 		-mapping $GITDIR/imposm/imposm3-mapping.json \
 		-read $PBF \
 		-write \
-		-deployproduction
+		-overwritecache \
+		-deployproduction \
+		-cachedir $TMPDIR
 
 
 	cd $GITDIR/post_imposm;
-	export PGPASSFILE=/tmp/pg_pass
-	echo "$(hostname):5432:osm:osm:osm" > $PGPASSFILE
-	chmod 0600 $PGPASSFILE
-	psql -w -h $(hostname) -p 5432 osm osm -f 0_run_all_post_install_scripts.sql
-	rm $PGPASSFILE
-	
-	/etc/init.d/postgresql stop
+
+	if [[ $START_DB == $start_db ]]; then
+		export PGPASSFILE=/tmp/pg_pass
+		echo "$(hostname):5432:osm:osm:osm" > $PGPASSFILE
+		chmod 0600 $PGPASSFILE
+		psql -w -h $(hostname) -p 5432 osm osm -f 0_run_all_post_install_scripts.sql
+		rm $PGPASSFILE
+		/etc/init.d/postgresql stop
+	fi
 }
 
 if [ ! -f $STATUS ]; then
@@ -64,20 +78,20 @@ case "$1" in
 		else
 			chown postgres /var/lib/postgresql
 			su postgres -c /usr/local/bin/install_db
-			import_db_osm
+			import_db_osm $start_db
 		fi
 		echo "pret" > $STATUS
 		;;
 	import_db)
 		echo "import" > $STATUS
-		import_db_osm
+		import_db_osm $no_start_db
 		echo "pret" > $STATUS
 		;;
 	update_db)
 		echo "import" > $STATUS
 		rm $PBF
 		wget -O $PBF $OSM_PBF
-		import_db_osm
+		import_db_osm $no_start_db
 		echo "pret" > $STATUS
 		;;
 esac
