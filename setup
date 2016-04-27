@@ -72,7 +72,7 @@ fi
 case "$1" in
 	create_db)
 		echo "create_db" > $STATUS
-		if [ -f $PGDIR/main ]; then
+		if [ -d $MYPGDIR/main ]; then
 			echo "la base existe déjà" 1>&2
 			exit 0;
 		else
