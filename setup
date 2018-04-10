@@ -9,7 +9,7 @@
 
 GITDIR=/srv/data/style-osm-geopicardie
 GITBRANCH=imposm3-mapping
-MYPGDIR=/var/lib/postgresql/9.3
+MYPGDIR=/var/lib/postgresql/9.5
 DATADIR=/srv/data
 PBF=$DATADIR/data.osm.pbf
 STATUS=$DATADIR/etat
